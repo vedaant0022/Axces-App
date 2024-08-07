@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "367804998297",
+    "project_id": "axcess-app-new",
+    "storage_bucket": "axcess-app-new.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:367804998297:android:5937a2d29789ad8cdf0e08",
+        "android_client_info": {
+          "package_name": "com.axces"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDA4seYd9zx2gRjfTT5hYjGbk3xKNRyZ_4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
