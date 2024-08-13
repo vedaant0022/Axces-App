@@ -40,6 +40,7 @@ import {RootStackParamList} from '../../routes/MainStack';
 import Facilities from '../Search/Facilities';
 import {FlatList} from 'react-native';
 import Animated from 'react-native-reanimated';
+import { Linking } from 'react-native';
 
 const ListPropertyDetailScreen = () => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -266,6 +267,12 @@ const ListPropertyDetailScreen = () => {
   const handleButtonPress = () => {
     setModalVisible(!modalVisible);
     setSelectedSuggestion('');
+  };
+
+  const handlePress = () => {
+    Linking.openURL('https://www.axces.in/privacy_policy.html').catch(err => 
+      console.error('Failed to open URL:', err)
+    );
   };
 
   return (
@@ -800,6 +807,7 @@ const ListPropertyDetailScreen = () => {
                 style={{height: 20, width: 25, resizeMode: 'contain'}}
               />
             </TouchableOpacity>
+            
             <Text
               style={{
                 fontSize: 16,
@@ -808,8 +816,13 @@ const ListPropertyDetailScreen = () => {
                 marginLeft: 8,
               }}>
               Agree with{' '}
+              <TouchableOpacity 
+              onPress={handlePress}
+              style={{justifyContent:'center',flex:1, alignItems:'center',}}>
               <Text style={{color: '#0171FF'}}>TERMS & CONDITIONS</Text>
+              </TouchableOpacity>
             </Text>
+         
           </View>
           <TouchableOpacity
             onPress={() => bottomSheetRef.current?.present()}
