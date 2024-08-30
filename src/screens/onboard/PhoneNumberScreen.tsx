@@ -59,7 +59,7 @@ const PhoneNumberScreen = () => {
     }
     setLoading(true);
     try {
-      const response = await fetch('https://axces-backend.onrender.com/api/send-otp', {
+      const response = await fetch('https://backend.axces.in/api/send-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
