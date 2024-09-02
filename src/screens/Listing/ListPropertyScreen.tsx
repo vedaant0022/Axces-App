@@ -22,28 +22,19 @@ import { errorMessage } from '../../utils';
 
 const ListPropertyScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const [selectedRole, setSelectedRole] = useState<string>('Owner');
-  const [lookingFor, setLookingFor] = useState<string>('Sell');
-  const [propertyType, setPropertyType] = useState<string>('Residential');
+  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [lookingFor, setLookingFor] = useState<string>('');
+  const [propertyType, setPropertyType] = useState<string>('');
   const [addPincode, setAddPincode] = useState<string>('');
   const [location,setlocation] = useState('');
   const route = useRoute();
+  const { latitude, longitude } = route.params || {};
 
-  // const handleSubmit = () => {
-  //   if (!addPincode) {
-  //     errorMessage('Please add pincode');
-  //     return
-  //   }
-  //   else {
-  //     navigation.navigate('ListPropertyDetailScreen', {
-  //       selectedRole,
-  //       lookingFor,
-  //       propertyType,
-  //       addPincode,
-  //       location
-  //     })
-  //   }
-  // };
+  useEffect(() => {
+    // Console log the values when the component mounts
+    console.log("Latitude:", latitude);
+    console.log("Longitude:", longitude);
+  }, [latitude, longitude]);
 
   const handleSubmit = () => {
     if (!addPincode) {
@@ -58,13 +49,15 @@ const ListPropertyScreen = () => {
         lookingFor,
         propertyType,
         addPincode,
-        location
+        location,
+        latitude,
+        longitude,
       });
     }
   };
 
   console.log("Current Location>>>", route?.params?.currentLocation)
-  // console.log("Usestate Location>>>", location)
+
   useEffect(() => {
     if (route?.params?.currentLocation) {
       setlocation(route.params.currentLocation);

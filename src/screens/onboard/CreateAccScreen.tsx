@@ -47,7 +47,7 @@ const CreateAccScreen = ({ route }: any) => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://axces-backend.onrender.com/api/profile', {
+      const response = await fetch('https://backend.axces.in/api/profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

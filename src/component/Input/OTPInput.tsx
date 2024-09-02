@@ -253,7 +253,7 @@ const OTPInput = ({confirm, phoneNumber, isLoading}: any) => {
   };
 
   async function verifyOtp(phoneNumber: number, otp: number) {
-    const url = 'http://axces-backend.onrender.com/api/verify-otp';
+    const url = 'https://backend.axces.in/api/verify-otp';
   
     const data = {
       phoneNumber: Number(phoneNumber), 
@@ -289,7 +289,7 @@ const OTPInput = ({confirm, phoneNumber, isLoading}: any) => {
   }
 
   async function verifyUserExists(phoneNumber: string) {
-    const url = 'http://axces-backend.onrender.com/api/user/verify';
+    const url = 'https://backend.axces.in/api/user/verify';
     const data = {
       number: phoneNumber,
     };
@@ -370,7 +370,7 @@ const OTPInput = ({confirm, phoneNumber, isLoading}: any) => {
         ))}
       </View>
       <View
-        style={{position: 'absolute', top: 550}}
+        style={{position: 'absolute', top: 530}}
         className="left-0 right-0 px-1">
         <TouchableOpacity
           onPress={handleVerifyPress}

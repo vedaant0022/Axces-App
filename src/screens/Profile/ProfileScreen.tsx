@@ -89,6 +89,7 @@ const ProfileScreen = () => {
     dispatch(onGetUserProfile());
     setRefreshing(false);
   }
+  
 
   useFocusEffect(
     useCallback(() => {
