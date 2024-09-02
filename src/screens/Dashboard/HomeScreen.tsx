@@ -180,7 +180,7 @@ const HomeScreen = () => {
 
     try {
       const response = await fetch(
-        `https://axces-backend.onrender.com/api/auto?query=${query}`,
+        `https://backend.axces.in/api/auto?query=${query}`,
         {
           method: 'GET',
         },
@@ -195,13 +195,7 @@ const HomeScreen = () => {
       setModalVisible(false);
     }
   };
-  // const handleSelectSuggestion = (item: any) => {
-  //   setInput(item?.place_name);
-  //   const { latitude, longitude } = item?.coordinates;
-  //   setLatitude(latitude);
-  //   setLongitude(longitude);
-  //   setModalVisible(false);
-  // };
+
   const handleSelectSuggestion = (item: any) => {
     setInput(item?.place_name);
     const {latitude, longitude} = item?.coordinates;

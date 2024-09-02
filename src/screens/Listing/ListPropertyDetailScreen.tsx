@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,11 @@ import {
   TouchableWithoutFeedback,
   TextInput,
   Dimensions,
+  Alert,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import {
   BottomSheetModal,
   BottomSheetModalProvider,
@@ -22,7 +23,7 @@ import {
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import Geolocation from '@react-native-community/geolocation';
-import {useDispatch} from 'react-redux';
+import { useDispatch } from 'react-redux';
 import CenterHeader from '../../component/Header/CenterHeader';
 import PropertyCalendar from '../../component/Calender/Calendar';
 import Tracker from '../../component/ListProperty/Tracker';
@@ -31,16 +32,18 @@ import PropertySelect from './component/PropertySelect';
 import SearchFilter from '../Search/SearchFilter';
 import ImagePicker from '../../component/ImagePicker/ImagePicker';
 import Loader from '../../component/Loader/Loader';
-import {scale, verticalScale} from 'react-native-size-matters';
-import {cloudMoney, coinStack, pinIcon} from '../../constants/imgURL';
-import {getUserId, successMessage, errorMessage} from '../../utils';
-import {onPostProperty} from '../../redux/ducks/Properties/addProperty';
-import {useAppSelector} from '../../constants';
-import {RootStackParamList} from '../../routes/MainStack';
+import { NamedStyles, scale, verticalScale } from 'react-native-size-matters';
+import { cloudMoney, coinStack, pinIcon } from '../../constants/imgURL';
+import { getUserId, successMessage, errorMessage } from '../../utils';
+import { onPostProperty } from '../../redux/ducks/Properties/addProperty';
+import { useAppSelector } from '../../constants';
+import { RootStackParamList } from '../../routes/MainStack';
 import Facilities from '../Search/Facilities';
-import {FlatList} from 'react-native';
+import { FlatList } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { Linking } from 'react-native';
+
+
 
 const ListPropertyDetailScreen = () => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -53,7 +56,7 @@ const ListPropertyDetailScreen = () => {
   // const [slideAnim] = useState(new Animated.Value(Dimensions.get('window').height));
   const route: any = useRoute();
 
-  const {selectedRole, lookingFor, propertyType, addPincode} = route?.params;
+  const { selectedRole, lookingFor, propertyType, addPincode, } = route?.params;
   const location = route.params?.location;
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -72,8 +75,8 @@ const ListPropertyDetailScreen = () => {
   const [imagePickerModal, setImagePickerModal] = useState<boolean>(false);
   const [images, setImages] = useState<any>([]);
   const [userId, setUserId] = useState<string>('');
-  const [latitude, setLatitude] = useState<number>(45);
-  const [longitude, setLongitude] = useState<number>(38);
+  const [latitude, setLatitude] = useState<number>();
+  const [longitude, setLongitude] = useState<number>();
   const [bedrooms, setBedrooms] = useState<string>('');
   const [Bathrooms, setBathrooms] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -82,23 +85,30 @@ const ListPropertyDetailScreen = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState('');
-  // const [input, setInput] = useState('');
   const [selectedLocalities, setSelectedLocalities] = useState([]);
 
   const addProperty = useAppSelector(state => state.addProperty);
 
   const dispatch = useDispatch();
   console.log(location);
-  const removeLocality = (index:any) => {
+  const removeLocality = (index: any) => {
     const newLocalities = selectedLocalities.filter((_, i) => i !== index);
     setSelectedLocalities(newLocalities);
   };
 
   useEffect(() => {
-    const getId = async () => {
-      const id = await getUserId();
-      setUserId(id.replace(/'/g, ''));
+    const fetchUserId = async () => {
+      try {
+        const id = await getUserId();
+        const sanitizedId = id.replace(/'/g, ''); // Replace single quotes if needed
+        console.log("Fetched and sanitized User ID:", sanitizedId); // Log the sanitized ID
+        setUserId(sanitizedId);
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
     };
+  
+    fetchUserId();
     const requestLocationPermission = async () => {
       try {
         const granted = await PermissionsAndroid.request(
@@ -117,7 +127,10 @@ const ListPropertyDetailScreen = () => {
             position => {
               setLatitude(position.coords.latitude);
               setLongitude(position.coords.longitude);
-            },
+            }
+            
+            ,
+            
             error => {
               console.log('ERRor>>>', error);
             },
@@ -125,19 +138,19 @@ const ListPropertyDetailScreen = () => {
           );
         } else {
           console.log('You cannot use Geolocation');
-        }
+        } 
       } catch (err) {
         return false;
       }
     };
     requestLocationPermission();
-    getId();
+    // getId();
   }, []);
 
   useEffect(() => {
     if (addProperty.called) {
       setLoading(false);
-      const {data, message, code} = addProperty;
+      const { data, message, code } = addProperty;
       console.log('data>>>', data);
       if (code === 201) {
         successMessage(message);
@@ -164,7 +177,7 @@ const ListPropertyDetailScreen = () => {
         if (image[i].size > 5000000) {
           error = 'Document size cannot be more than 5MB';
         } else {
-          tempImages.push({...image[i], default: i === 0});
+          tempImages.push({ ...image[i], default: i === 0 });
         }
       }
       setImages([...tempImages]);
@@ -212,12 +225,6 @@ const ListPropertyDetailScreen = () => {
       errorMessage('Total floors should be greater than your floor');
       return false;
     }
-    // if (Number(deposit) <= Number(rent)) {
-    //   errorMessage('Deposit should be more than rent ');
-    //   return false;
-    // } else {
-    //   return true;
-    // }
   };
 
   const trimText = (text: any, maxLength: any) => {
@@ -236,13 +243,13 @@ const ListPropertyDetailScreen = () => {
 
     try {
       const response = await fetch(
-        `https://axces-backend.onrender.com/api/auto?query=${query}`,
+        `https://backend.axces.in/api/auto?query=${query}`,
         {
           method: 'GET',
         },
       );
       const responseData = await response.json();
-      const {data} = responseData;
+      const { data } = responseData;
       setSuggestions(data);
       setModalVisible(true);
     } catch (error) {
@@ -252,13 +259,7 @@ const ListPropertyDetailScreen = () => {
     }
   };
 
-  // const handleSelectSuggestion = (item: any) => {
-  //   setSelectedSuggestion(item.place_name);
-  //   setInput('');
-  //   setSuggestions([]);
-  //   setModalVisible(false);
-  // };
-  const handleSelectSuggestion = (item:any) => {
+  const handleSelectSuggestion = (item: any) => {
     setSelectedLocalities([...selectedLocalities, item]);
     setModalVisible(false);
     setInput('');
@@ -270,19 +271,126 @@ const ListPropertyDetailScreen = () => {
   };
 
   const handlePress = () => {
-    Linking.openURL('https://www.axces.in/privacy_policy.html').catch(err => 
+    Linking.openURL('https://www.axces.in/privacy_policy.html').catch(err =>
       console.error('Failed to open URL:', err)
     );
   };
 
+  const submitPropertyForm = async () => {
+    try {
+      if (!latitude || !longitude) {
+        errorMessage("Location coordinates are not set. Please try again.")
+        return;
+      }
+
+      if (!userId) {
+        console.error("User ID is undefined!");
+        // Alert.alert("User ID is not set. Please try again.");
+        errorMessage("User ID is not set. Please try again");
+        return;
+      }
+
+      const bedroomsNumber = parseInt(bedrooms); // Correcting the bedrooms field
+      const bathroomsNumber = parseInt(Bathrooms); // Correcting the bathrooms field
+    
+      const availableFrom = new Date("2024-09-30T00:00:00Z"); // Example ISO format
+    
+      const location = {
+        latitude: Number(latitude), 
+        longitude: Number(longitude) 
+      };
+    
+      // Ensure localities is not empty
+      if (!selectedLocalities || selectedLocalities.length === 0) {
+        // alert("Please select at least one locality.");
+        errorMessage("Please select at least one locality");
+        return;
+      }
+
+      console.log("User ID:", userId);
+      setLoading(true);
+      console.log(`https://backend.axces.in/api/property/post/${userId}`);
+      const formData = new FormData();
+      formData.append("property_type", propertyType); // Assuming fixed value
+      formData.append("_id", userId); // Assuming fixed value
+      formData.append("title", propertyName);
+      formData.append("description", aboutProp);
+      formData.append("address", landMark);
+      formData.append("pincode", addPincode); // Assuming fixed value, replace if needed
+      formData.append("location", JSON.stringify(location));
+      formData.append("building_name", propertyName); // Assuming fixed value, replace if needed
+      formData.append("bedrooms", bedroomsNumber);
+      formData.append("bathrooms", bathroomsNumber);
+      formData.append("area_sqft", area);
+      formData.append("property_age", "5 years"); // Assuming fixed value, replace if needed
+      formData.append("facing", facing);
+      formData.append("floor_number", floor);
+      formData.append("total_floors", totalFloor);
+      formData.append("furnish_type", furnishingType);
+      formData.append("available_from", availableFrom.toISOString()); // Assuming fixed value, replace if needed
+      formData.append("monthly_rent", rent);
+      formData.append("security_deposit", deposit);
+      formData.append("preferred_tenant", tenant);
+      formData.append("localities", selectedLocalities.join(',')); // Assuming selectedLocalities is an array of strings
+      formData.append("landmark", landMark);
+      formData.append("facilities", facilities.map(facility => facility.trim()).join(','));
+      formData.append("listing_type", "rent"); // Assuming fixed value, replace if needed
+
+      // Append images
+      if (images.length > 0) {
+        images.forEach((image, index) => {
+          formData.append("images", {
+            uri: image.uri,
+            name: `photo_${index}.jpg`,
+            type: 'image/jpeg',
+          });
+        });
+      }
+
+      const requestOptions = {
+        method: "POST",
+        body: formData,
+        redirect: "follow"
+      };
+
+      const response = await fetch(`https://backend.axces.in/api/property/post/${userId}`, requestOptions);
+      const result = await response.json();
+
+      console.log(result);
+
+      // Handle the response accordingly
+      if (response.ok) {
+        console.log(response.status);
+        successMessage("Property listed successfully!");
+        navigation.navigate('Dashboard');
+      } else {
+        console.log(response.status);
+        // Alert.alert("Failed to list property. Please try again.");
+        errorMessage("Property listed successfully");
+      }
+    } catch (error) {
+      console.error("Error posting property:", error);
+      // Alert.alert("An error occurred. Please try again.");
+      errorMessage("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Example usage
+  // submitPropertyForm("66bfc8e822403a58a715b02b", document.querySelector('input[type="file"]'));
+
+
+
+
   return (
     <BottomSheetModalProvider>
-      <SafeAreaView style={{flex: 1, position: 'relative'}}>
+      <SafeAreaView style={{ flex: 1, position: 'relative' }}>
         <StatusBar backgroundColor={'#181A53'} />
         <CenterHeader title="List Property" />
         <Loader loading={loading} />
         <ScrollView
-          style={{flex: 1, backgroundColor: 'white', marginBottom: 65}}>
+          style={{ flex: 1, backgroundColor: 'white', marginBottom: 65 }}>
           <Tracker stage={2} />
           <View
             style={{
@@ -291,14 +399,14 @@ const ListPropertyDetailScreen = () => {
               height: 46,
               justifyContent: 'center',
             }}>
-            <View style={{marginLeft: 15, marginRight: 15}}>
+            <View style={{ marginLeft: 15, marginRight: 15 }}>
               <View
-                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Image
                   source={{
                     uri: 'https://cdn-icons-png.flaticon.com/512/149/149983.png',
                   }}
-                  style={{height: 26, width: 22, resizeMode: 'contain'}}
+                  style={{ height: 26, width: 22, resizeMode: 'contain' }}
                 />
 
                 <Text
@@ -315,7 +423,7 @@ const ListPropertyDetailScreen = () => {
                   source={{
                     uri: 'https://cdn-icons-png.flaticon.com/512/1659/1659764.png',
                   }}
-                  style={{height: 26, width: 22, resizeMode: 'contain'}}
+                  style={{ height: 26, width: 22, resizeMode: 'contain' }}
                   tintColor="#BDEA09"
                 />
               </View>
@@ -327,7 +435,7 @@ const ListPropertyDetailScreen = () => {
             defaultValue="Please Select an Option"
             onChangeHandler={text => setProperty(text)}
           />
-          <View style={{marginTop: 12}}>
+          <View style={{ marginTop: 12 }}>
             <PropertyInput
               placeholderText="Enter your building name"
               title="Building/ Property/ Society Name"
@@ -381,7 +489,7 @@ const ListPropertyDetailScreen = () => {
             value={furnishingType}
             onSelectHandler={setFurnishingType}
           />
-          <View style={{marginHorizontal: 24, marginTop: 16}}>
+          <View style={{ marginHorizontal: 24, marginTop: 16 }}>
             <Text
               style={{
                 color: '#0E0E0C',
@@ -400,13 +508,13 @@ const ListPropertyDetailScreen = () => {
                 backgroundColor: '#BDEA09',
                 marginBottom: 16,
               }}>
-              <Text style={{color: '#181A53', fontSize: 16, fontWeight: '500'}}>
+              <Text style={{ color: '#181A53', fontSize: 16, fontWeight: '500' }}>
                 {/* {startDate ? `Selected Date: ${startDate}` : 'Select Date'} */}
                 Availability
               </Text>
             </TouchableOpacity>
             <View >
-            <Text style={{fontSize:16,color:'#000000',fontWeight:'600',paddingLeft:10}}>{startDate}</Text>
+              <Text style={{ fontSize: 16, color: '#000000', fontWeight: '600', paddingLeft: 10 }}>{startDate}</Text>
             </View>
           </View>
 
@@ -434,199 +542,115 @@ const ListPropertyDetailScreen = () => {
             value={tenant}
             onSelectHandler={setTenant}
           />
-          {/* <View
-            style={{
-              flex: 1,
-              alignItems: 'flex-start',
-              marginHorizontal: 24,
-              marginTop: 16,
-              
-              
-            }}>
-            <Text
-              style={{
-                color: '#0E0E0C',
-                fontSize: 16,
-                fontWeight: 'bold',
-                marginBottom: 12,
-              }}>
+          <View style={{ flex: 1, alignItems: 'flex-start', marginHorizontal: 24, marginTop: 16 }}>
+            <Text style={{ color: '#0E0E0C', fontSize: 16, fontWeight: 'bold', marginBottom: 12 }}>
               Add Localities
             </Text>
             <TouchableOpacity
-              onPress={handleButtonPress}
+              onPress={() => setModalVisible(true)}
               style={{
                 paddingVertical: 12,
                 paddingHorizontal: 32,
                 borderRadius: 50,
                 backgroundColor: '#BDEA09',
-              }}>
-              
-              <Text style={{color: '#181A53', fontSize: 16, fontWeight: '500'}}>
-                {selectedSuggestion || 'Add locality'}
+                marginBottom: 16,
+              }}
+            >
+              <Text style={{ color: '#181A53', fontSize: 16, fontWeight: '500' }}>
+                {input || 'Add locality'}
               </Text>
             </TouchableOpacity>
+
             <View>
               {modalVisible && (
                 <View
                   style={{
                     marginTop: 10,
-                    backgroundColor: '#f2f9f7', 
+                    backgroundColor: '#f2f9f7',
                     borderRadius: 10,
                     padding: 10,
-                    shadowColor: '#000', 
-                    shadowOffset: {width: 0, height: 2},
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
                     shadowOpacity: 0.1,
                     shadowRadius: 8,
-                    // elevation:5,
-                    width:350
-                    
-                  }}>
+                    width: 350,
+                  }}
+                >
                   <TextInput
                     placeholder="Search your dream home here"
-                    placeholderTextColor="gray" 
+                    placeholderTextColor="gray"
                     style={{
-                      color: 'black', 
+                      color: 'black',
                       width: '100%',
                       padding: 10,
-                      backgroundColor: '#f2f9f7', 
+                      backgroundColor: '#f2f9f7',
                       borderRadius: 8,
-                      borderColor:'#000'
-                      
                     }}
                     value={input}
-                    onChangeText={text => fetchSuggestions(text)}
+                    onChangeText={(text) => {
+                      setInput(text);
+                      fetchSuggestions(text);
+                    }}
                   />
                   <FlatList
                     data={suggestions}
                     keyExtractor={(item, index) => index.toString()}
-                    renderItem={({item}) => (
+                    renderItem={({ item }) => (
                       <TouchableOpacity
                         onPress={() => handleSelectSuggestion(item)}
                         style={{
                           paddingVertical: 8,
                           borderBottomWidth: 1,
                           borderBottomColor: '#ccc',
-                          backgroundColor:'#f2f9f7'
-                          
-                        }}>
-                        <Text style={{color: '#000000', fontSize: 16,fontWeight:'500'}}>
+                        }}
+                      >
+                        <Text style={{ color: '#000000', fontSize: 16, fontWeight: '500', }}>
                           {item.place_name}
                         </Text>
                       </TouchableOpacity>
                     )}
-                    style={{maxHeight: 200, marginTop: 10}}
+                    style={{ maxHeight: 200, marginTop: 10 }}
                   />
                 </View>
               )}
             </View>
-          </View> */}
-          <View style={{ flex: 1, alignItems: 'flex-start', marginHorizontal: 24, marginTop: 16 }}>
-      <Text style={{ color: '#0E0E0C', fontSize: 16, fontWeight: 'bold', marginBottom: 12 }}>
-        Add Localities
-      </Text>
-      <TouchableOpacity
-        onPress={() => setModalVisible(true)}
-        style={{
-          paddingVertical: 12,
-          paddingHorizontal: 32,
-          borderRadius: 50,
-          backgroundColor: '#BDEA09',
-          marginBottom: 16,
-        }}
-      >
-        <Text style={{ color: '#181A53', fontSize: 16, fontWeight: '500' }}>
-          {input || 'Add locality'}
-        </Text>
-      </TouchableOpacity>
 
-      <View>
-        {modalVisible && (
-          <View
-            style={{
-              marginTop: 10,
-              backgroundColor: '#f2f9f7',
-              borderRadius: 10,
-              padding: 10,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              width: 350,
-            }}
-          >
-            <TextInput
-              placeholder="Search your dream home here"
-              placeholderTextColor="gray"
-              style={{
-                color: 'black',
-                width: '100%',
-                padding: 10,
-                backgroundColor: '#f2f9f7',
-                borderRadius: 8,
-              }}
-              value={input}
-              onChangeText={(text) => {
-                setInput(text);
-                fetchSuggestions(text);
-              }}
-            />
-            <FlatList
-              data={suggestions}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => handleSelectSuggestion(item)}
-                  style={{
-                    paddingVertical: 8,
-                    borderBottomWidth: 1,
-                    borderBottomColor: '#ccc',
-                  }}
-                >
-                  <Text style={{ color: '#000000', fontSize: 16, fontWeight: '500', }}>
-                    {item.place_name}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              style={{ maxHeight: 200, marginTop: 10 }}
-            />
+            <View>
+              {selectedLocalities.map((locality, index) => (
+                <View style={{
+                  backgroundColor: '#f2f9f7', borderRadius: 20,
+                  padding: 10,
+                  marginTop: 5,
+                  width: '100%'
+                }}>
+                  <View
+                    key={index}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: '#f2f9f7',
+                      borderRadius: 20,
+                      padding: 10,
+                      marginTop: 5,
+                      width: 350,
+                      gap: 20
+                    }}
+                  >
+                    <Text style={{ color: '#000', fontSize: 16, fontWeight: '500' }}>
+                      {locality.place_name}
+                    </Text>
+                    <TouchableOpacity onPress={() => removeLocality(index)} style={{ marginLeft: 10 }}>
+                      <Image
+                        source={{ uri: 'https://cdn-icons-png.flaticon.com/512/1828/1828666.png' }}
+                        style={{ height: 15, width: 15 }}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
           </View>
-        )}
-      </View>
 
-      <View>
-        {selectedLocalities.map((locality, index) => (
-          <View style={{backgroundColor:'#f2f9f7',borderRadius: 20,
-            padding: 10,
-            marginTop: 5,
-            width:'100%'}}>
-          <View
-            key={index}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: '#f2f9f7',
-              borderRadius: 20,
-              padding: 10,
-              marginTop: 5,
-              width:350,
-              gap:20
-            }}
-          >
-            <Text style={{ color: '#000', fontSize: 16, fontWeight: '500' }}>
-              {locality.place_name}
-            </Text>
-            <TouchableOpacity onPress={() => removeLocality(index)} style={{ marginLeft: 10 }}>
-              <Image
-              source={{uri:'https://cdn-icons-png.flaticon.com/512/1828/1828666.png'}}
-              style={{height:15, width:15}}
-              />
-            </TouchableOpacity>
-          </View>
-          </View>
-        ))}
-      </View>
-    </View>
-         
           <PropertyInput
             title="Landmark"
             placeholderText="Enter your landmark"
@@ -665,7 +689,7 @@ const ListPropertyDetailScreen = () => {
               alignItems: 'flex-start',
               marginHorizontal: 24,
             }}>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text
                 style={{
                   color: '#0E0E0C',
@@ -697,11 +721,11 @@ const ListPropertyDetailScreen = () => {
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
-                gap:12
+                gap: 12
               }}
               onPress={() => setImagePickerModal(true)}>
               <Image
-                style={{marginRight: 8}}
+                style={{ marginRight: 8 }}
                 source={{
                   uri: 'https://res.cloudinary.com/krishanucloud/image/upload/v1715767072/Vector_rfssto.png',
                 }}
@@ -711,18 +735,18 @@ const ListPropertyDetailScreen = () => {
                   height: verticalScale(10),
                 }}
               />
-              <Text style={{color: '#181A53', fontSize: 16, fontWeight: '500'}}>
+              <Text style={{ color: '#181A53', fontSize: 16, fontWeight: '500' }}>
                 Attach images
               </Text>
             </TouchableOpacity>
-            <View style={{flex: 1, flexDirection: 'row', flexWrap: 'wrap'}}>
+            <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap' }}>
               {images.map((image: any, index: any) => (
                 <View
                   key={index}
-                  style={{position: 'relative', marginRight: 10}}>
+                  style={{ position: 'relative', marginRight: 10 }}>
                   <Image
-                    source={{uri: image.uri}}
-                    style={{width: 100, height: 100, borderRadius: 8}}
+                    source={{ uri: image.uri }}
+                    style={{ width: 100, height: 100, borderRadius: 8 }}
                   />
                   <TouchableOpacity
                     onPress={() => removeImage(index)}
@@ -735,7 +759,7 @@ const ListPropertyDetailScreen = () => {
                       width: 25,
                       alignItems: 'center',
                     }}>
-                    <Text style={{color: 'white'}}>X</Text>
+                    <Text style={{ color: 'white' }}>X</Text>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -751,9 +775,9 @@ const ListPropertyDetailScreen = () => {
               justifyContent: 'space-between',
               alignItems: 'center',
             }}>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Image
-                style={{marginRight: 8}}
+                style={{ marginRight: 8 }}
                 source={{
                   uri: 'https://res.cloudinary.com/krishanucloud/image/upload/v1715767454/Wallet_qx36qn.png',
                 }}
@@ -763,17 +787,17 @@ const ListPropertyDetailScreen = () => {
                   height: verticalScale(16),
                 }}
               />
-              <Text style={{fontSize: 14, color: '#181A53', fontWeight: '500'}}>
+              <Text style={{ fontSize: 14, color: '#181A53', fontWeight: '500' }}>
                 Charges
               </Text>
             </View>
 
-            <Text style={{color: '#181A53', fontSize: 16, fontWeight: 'bold'}}>
+            <Text style={{ color: '#181A53', fontSize: 16, fontWeight: 'bold' }}>
               50 Coins
             </Text>
           </View>
 
-          <View style={{width: '100%', height: '15vh'}} />
+          <View style={{ width: '100%', height: '15vh' }} />
         </ScrollView>
         <View
           style={{
@@ -804,10 +828,10 @@ const ListPropertyDetailScreen = () => {
                     ? 'https://cdn-icons-png.flaticon.com/512/9426/9426997.png'
                     : 'https://cdn-icons-png.flaticon.com/512/481/481078.png',
                 }}
-                style={{height: 20, width: 25, resizeMode: 'contain'}}
+                style={{ height: 20, width: 25, resizeMode: 'contain' }}
               />
             </TouchableOpacity>
-            
+
             <Text
               style={{
                 fontSize: 16,
@@ -816,13 +840,13 @@ const ListPropertyDetailScreen = () => {
                 marginLeft: 8,
               }}>
               Agree with{' '}
-              <TouchableOpacity 
-              onPress={handlePress}
-              style={{justifyContent:'center',flex:1, alignItems:'center',}}>
-              <Text style={{color: '#0171FF'}}>TERMS & CONDITIONS</Text>
+              <TouchableOpacity
+                onPress={handlePress}
+                style={{ justifyContent: 'center', flex: 1, alignItems: 'center', }}>
+                <Text style={{ color: '#0171FF' }}>TERMS & CONDITIONS</Text>
               </TouchableOpacity>
             </Text>
-         
+
           </View>
           <TouchableOpacity
             onPress={() => bottomSheetRef.current?.present()}
@@ -832,7 +856,8 @@ const ListPropertyDetailScreen = () => {
               backgroundColor: '#BDEA09',
               borderRadius: 50,
               marginTop: 8,
-            }}>
+            }}
+          >
             <Text
               style={{
                 color: '#181A53',
@@ -868,10 +893,10 @@ const ListPropertyDetailScreen = () => {
                     paddingTop: 28,
                   }}>
                   <Text
-                    style={{color: 'black', fontSize: 16, fontWeight: 'bold'}}>
+                    style={{ color: 'black', fontSize: 16, fontWeight: 'bold' }}>
                     Congratulations!!!
                   </Text>
-                  <Text style={{color: '#34AF48'}}>
+                  <Text style={{ color: '#34AF48' }}>
                     Property has been listed successfully
                   </Text>
                   <View
@@ -885,11 +910,11 @@ const ListPropertyDetailScreen = () => {
                       backgroundColor: '#F2F8F6',
                     }}>
                     <Image
-                      source={{uri: pinIcon}}
+                      source={{ uri: pinIcon }}
                       resizeMode="contain"
-                      style={{width: 8, height: 20, marginRight: 8}}
+                      style={{ width: 8, height: 20, marginRight: 8 }}
                     />
-                    <Text style={{fontSize: 14, color: '#181A53'}}>
+                    <Text style={{ fontSize: 14, color: '#181A53' }}>
                       At- 122345, Indira nagar, New delhi
                     </Text>
                   </View>
@@ -953,8 +978,8 @@ const ListPropertyDetailScreen = () => {
               <PropertyCalendar onDateSelect={handleDateSelect} />
               <TouchableOpacity
                 onPress={() => setCalendarVisible(false)}
-                style={{marginTop: 16, alignItems: 'center'}}>
-                <Text style={{color: '#007BFF', fontSize: 16}}>Close</Text>
+                style={{ marginTop: 16, alignItems: 'center' }}>
+                <Text style={{ color: '#007BFF', fontSize: 16 }}>Close</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -973,14 +998,14 @@ const ListPropertyDetailScreen = () => {
           keyboardBehavior="interactive"
           ref={bottomSheetRef}
           snapPoints={['40%']}
-          handleIndicatorStyle={{height: 0}}
+          handleIndicatorStyle={{ height: 0 }}
           handleStyle={{
             backgroundColor: 'white',
             borderTopRightRadius: 24,
             borderTopLeftRadius: 24,
             height: 28,
           }}>
-          <BottomSheetView style={{flex: 1}}>
+          <BottomSheetView style={{ flex: 1 }}>
             <View
               style={{
                 flex: 1,
@@ -994,14 +1019,14 @@ const ListPropertyDetailScreen = () => {
                   borderBottomColor: 'rgba(0, 0, 0, 0.1)',
                   paddingBottom: 16,
                 }}>
-                <View style={{marginRight: 16}}>
+                <View style={{ marginRight: 16 }}>
                   <Image
-                    source={{uri: coinStack}}
+                    source={{ uri: coinStack }}
                     resizeMode="contain"
-                    style={{width: 40, height: 40}}
+                    style={{ width: 40, height: 40 }}
                   />
                 </View>
-                <View style={{flex: 1, paddingRight: 24}}>
+                <View style={{ flex: 1, paddingRight: 24 }}>
                   <Text
                     style={{
                       color: '#0E0E0C',
@@ -1010,7 +1035,7 @@ const ListPropertyDetailScreen = () => {
                     }}>
                     Do you want to list your property?
                   </Text>
-                  <Text style={{color: '#0E0E0C99', fontSize: 16}}>
+                  <Text style={{ color: '#0E0E0C99', fontSize: 16 }}>
                     You will require 50 coins to list your property
                   </Text>
                 </View>
@@ -1031,9 +1056,9 @@ const ListPropertyDetailScreen = () => {
                     backgroundColor: '#F2F8F6',
                     borderRadius: 50,
                   }}>
-                  <Text style={{color: '#181A53', fontSize: 18}}>
+                  <Text style={{ color: '#181A53', fontSize: 18 }}>
                     Available coins:{' '}
-                    <Text style={{fontWeight: 'bold'}}>50</Text>
+                    <Text style={{ fontWeight: 'bold' }}>50</Text>
                   </Text>
                   <TouchableOpacity
                     style={{
@@ -1042,7 +1067,7 @@ const ListPropertyDetailScreen = () => {
                       paddingHorizontal: 12,
                       paddingVertical: 4,
                     }}>
-                    <Text style={{color: '#181A53', fontSize: 16}}>
+                    <Text style={{ color: '#181A53', fontSize: 16 }}>
                       + Add coins
                     </Text>
                   </TouchableOpacity>
@@ -1074,43 +1099,16 @@ const ListPropertyDetailScreen = () => {
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => {
-                    bottomSheetRef.current?.close();
-                    // nocoinbottomSheetRef.current?.present();
-                    if (validateFields()) {
-                      dispatch(
-                        onPostProperty(
-                          userId,
-                          propertyType,
-                          propertyName,
-                          aboutProp,
-                          addPincode,
-                          latitude,
-                          bedrooms[0],
-                          bedrooms[0],
-                          area,
-                          facing,
-                          floor,
-                          totalFloor,
-                          furnishingType,
-                          startDate,
-                          rent,
-                          deposit,
-                          tenant,
-                          landMark,
-                          facilities,
-                          images,
-                        ),
-                      );
-                      setLoading(true);
-                    }
-                  }}
+                  onPress={() => { submitPropertyForm() }}
                   style={{
                     flex: 1,
                     backgroundColor: '#BDEA09',
                     borderRadius: 50,
                     padding: 12,
-                  }}>
+                  }}
+
+
+                >
                   <Text
                     style={{
                       color: '#181A53',
@@ -1140,14 +1138,14 @@ const ListPropertyDetailScreen = () => {
           keyboardBehavior="interactive"
           ref={nocoinbottomSheetRef}
           snapPoints={['40%']}
-          handleIndicatorStyle={{height: 0}}
+          handleIndicatorStyle={{ height: 0 }}
           handleStyle={{
             backgroundColor: 'white',
             borderTopRightRadius: 24,
             borderTopLeftRadius: 24,
             height: 28,
           }}>
-          <BottomSheetView style={{flex: 1}}>
+          <BottomSheetView style={{ flex: 1 }}>
             <View
               style={{
                 flex: 1,
@@ -1163,8 +1161,8 @@ const ListPropertyDetailScreen = () => {
                   backgroundColor: '#F2F8F6',
                   borderRadius: 10,
                 }}>
-                <Text style={{color: '#181A53', fontSize: 18}}>Your coins</Text>
-                <Text style={{color: '#181A53', fontSize: 18}}>0</Text>
+                <Text style={{ color: '#181A53', fontSize: 18 }}>Your coins</Text>
+                <Text style={{ color: '#181A53', fontSize: 18 }}>0</Text>
               </View>
               <Text
                 style={{
@@ -1192,14 +1190,14 @@ const ListPropertyDetailScreen = () => {
                   alignItems: 'center',
                   marginTop: 12,
                 }}>
-                <View style={{marginRight: 16}}>
+                <View style={{ marginRight: 16 }}>
                   <Image
-                    source={{uri: coinStack}}
+                    source={{ uri: coinStack }}
                     resizeMode="contain"
-                    style={{width: 20, height: 20}}
+                    style={{ width: 20, height: 20 }}
                   />
                 </View>
-                <Text style={{color: '#0E0E0C99', fontSize: 16}}>
+                <Text style={{ color: '#0E0E0C99', fontSize: 16 }}>
                   Add AXCES coins to your wallet
                 </Text>
               </View>
@@ -1209,14 +1207,14 @@ const ListPropertyDetailScreen = () => {
                   alignItems: 'center',
                   marginTop: 12,
                 }}>
-                <View style={{marginRight: 16}}>
+                <View style={{ marginRight: 16 }}>
                   <Image
-                    source={{uri: coinStack}}
+                    source={{ uri: coinStack }}
                     resizeMode="contain"
-                    style={{width: 20, height: 20}}
+                    style={{ width: 20, height: 20 }}
                   />
                 </View>
-                <Text style={{color: '#0E0E0C99', fontSize: 16}}>
+                <Text style={{ color: '#0E0E0C99', fontSize: 16 }}>
                   Seamlessly access to our services
                 </Text>
               </View>
